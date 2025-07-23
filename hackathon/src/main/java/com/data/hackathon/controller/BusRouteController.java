@@ -1,7 +1,10 @@
 package com.data.hackathon.controller;
 
+import com.data.hackathon.modal.dto.req.BusRouteRequestDTO;
 import com.data.hackathon.modal.dto.res.ApiResponse;
+import com.data.hackathon.modal.entity.Bus;
 import com.data.hackathon.modal.entity.BusRoute;
+import com.data.hackathon.repository.BusRepository;
 import com.data.hackathon.service.BusRouteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,6 +23,8 @@ import java.util.stream.Collectors;
 public class BusRouteController {
     @Autowired
     private BusRouteService busRouteService;
+    @Autowired
+    private BusRepository busRepository;
 
     @GetMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> getAllBusRoutes() {
@@ -58,8 +63,20 @@ public class BusRouteController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<BusRoute>> createBusRoute(@RequestBody BusRoute busRoute) {
+    public ResponseEntity<ApiResponse<BusRoute>> createBusRoute(@RequestBody BusRouteRequestDTO dto) {
+        Bus bus = busRepository.findById(dto.getBusId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bus"));
+
+        BusRoute busRoute = new BusRoute();
+        busRoute.setStartPoint(dto.getStartPoint());
+        busRoute.setEndPoint(dto.getEndPoint());
+        busRoute.setTripInformation(dto.getTripInformation());
+        busRoute.setDriverName(dto.getDriverName());
+        busRoute.setStatus(dto.getStatus());
+        busRoute.setBus(bus);
+
         BusRoute createdBusRoute = busRouteService.createBusRoute(busRoute);
+
         ApiResponse<BusRoute> response = new ApiResponse<>(
                 true,
                 "Thêm chuyến đi thành công",
