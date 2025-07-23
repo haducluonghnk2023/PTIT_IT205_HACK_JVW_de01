@@ -87,11 +87,40 @@ public class BusRouteController {
     }
 
     @PutMapping("/{busRouteId}")
-    public ResponseEntity<ApiResponse<BusRoute>> updateBusRoute(@PathVariable Integer busRouteId,@RequestBody BusRoute busRoute) {
-        BusRoute updatedBusRoute = busRouteService.updateBusRoute(busRouteId, busRoute);
-        ApiResponse<BusRoute> response = new ApiResponse<>(true,"Update bus route successfully", updatedBusRoute, HttpStatus.OK);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+    public ResponseEntity<ApiResponse<BusRoute>> updateBusRoute(
+            @PathVariable Integer busRouteId,
+            @RequestBody BusRouteRequestDTO dto) {
+
+        // Lấy đối tượng BusRoute cũ
+        BusRoute existingRoute = busRouteService.getBusRouteById(busRouteId);
+        if (existingRoute == null) {
+            throw new RuntimeException("Không tìm thấy chuyến đi với ID: " + busRouteId);
+        }
+
+        // Lấy bus tương ứng
+        Bus bus = busRepository.findById(dto.getBusId())
+                .orElseThrow(() -> new RuntimeException("Bus ID không tồn tại"));
+
+        // Cập nhật thông tin
+        existingRoute.setStartPoint(dto.getStartPoint());
+        existingRoute.setEndPoint(dto.getEndPoint());
+        existingRoute.setTripInformation(dto.getTripInformation());
+        existingRoute.setDriverName(dto.getDriverName());
+        existingRoute.setStatus(dto.getStatus());
+        existingRoute.setBus(bus);
+
+        // Lưu lại
+        BusRoute updated = busRouteService.createBusRoute(existingRoute);
+
+        ApiResponse<BusRoute> response = new ApiResponse<>(
+                true,
+                "Update bus route successfully",
+                updated,
+                HttpStatus.OK
+        );
+        return ResponseEntity.ok(response);
     }
+
 
     @DeleteMapping("/{busRouteId}")
     public ResponseEntity<ApiResponse<String>> deleteBusRoute(@PathVariable Integer busRouteId) {

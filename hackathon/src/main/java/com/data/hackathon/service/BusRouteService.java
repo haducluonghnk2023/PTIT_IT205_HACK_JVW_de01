@@ -11,4 +11,5 @@ public interface BusRouteService {
     BusRoute updateBusRoute(Integer busRouteId, BusRoute busRoute);
     void deleteBusRoute(Integer busRouteId);
     List<BusRoute> findBusRouteByStartPointAndEndPoint(String startPoint, String endPoint);
+
 }
